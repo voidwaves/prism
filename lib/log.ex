@@ -1,7 +1,7 @@
 defmodule Log do
     use Agent
 
-    # todo: make this into start_registry, add push_registry, add start_link with name argument
+    # todo use LogRegistry
     def start_link() do
         Agent.start_link(fn -> [] end, [name: :global_log])
         |> case do
