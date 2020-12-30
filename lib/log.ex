@@ -7,8 +7,6 @@ defmodule Log do
         |> case do
             {:ok, pid} -> {:ok, pid}
             {:error, {:already_started, pid}} -> {:ok, pid}
-            {:error, reason} -> {:error, reason}
-            other -> {:error, other}
         end
     end
 
