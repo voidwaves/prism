@@ -3,10 +3,17 @@ defmodule LogRegistry do
 
     def register(name) do
         {:ok, registry} = start_registry()
-        {:ok, log} = Agent.start_link(fn -> [] end, [name: name])
+        {:ok, log_pid} = Agent.start_link(fn -> [] end)
 
         :ok = Agent.update(registry, fn logs -> 
-            if Enum.member?(logs, name), do: logs, else: [{name, log} | logs]
+            log = Enum.find(logs, fn {log_name, _} -> 
+                name == log_name
+            end)
+
+            case log do
+                nil -> [{name, log_pid} | logs]
+                _ -> logs
+            end
         end)
     end
 
