@@ -1,21 +1,34 @@
 defmodule LogRegistry do
     use Agent
 
-    # unfinished!
     def register(name) do
         {:ok, registry} = start_registry()
         {:ok, log} = Agent.start_link(fn -> [] end, [name: name])
 
-        Agent.update(registry, fn logs -> 
+        :ok = Agent.update(registry, fn logs -> 
             if Enum.member?(logs, name), do: logs, else: [{name, log} | logs]
         end)
     end
 
-    # unfinished!
     def unregister(name) do
         {:ok, registry} = start_registry()
-        Agent.update(registry, fn logs -> 
-            if Enum.member?(logs, name), do: logs -- name, else: logs
+
+        :ok = Agent.update(registry, fn logs -> 
+            Enum.filter(logs, fn {log_name, log_pid} -> 
+                deleted = name == log_name 
+                if deleted, do: Agent.stop(log_pid)
+                !deleted
+            end)
+        end)
+    end
+
+    def get_log(name) do
+        {:ok, registry} = start_registry()
+
+        Agent.get(registry, fn logs ->
+            Enum.find(logs, fn {log_name, _} -> 
+                name == log_name
+            end)
         end)
     end
 
