@@ -2,7 +2,7 @@ defmodule Prism do
   require Log
   require LogRegistry
 
-  def example do
+  def start do
     :ok = Log.start_link(:first)
     Log.all_entries(:first)
     |> inspect()
