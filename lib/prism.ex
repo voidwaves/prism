@@ -1,21 +1,33 @@
 defmodule Prism do
   require Log
+  require LogRegistry
 
   def example do
-    {:ok, pid1} = Log.start_link()
-    Log.append(pid1, "first entry")
-    IO.puts("pid1")
-    Log.all_entries(pid1)
+    :ok = Log.start_link(:first)
+    Log.all_entries(:first)
     |> inspect()
     |> IO.puts()
- 
-    {:ok, pid2} = Log.start_link()
-    Log.append(pid2, "second entry")
-    IO.puts("pid2")
-    Log.all_entries(pid2)
+    Log.append(:first, "first hello first log")
+    Log.append(:first, "second hello first log")
+    Log.all_entries(:first)
     |> inspect()
     |> IO.puts()
 
-    {:ok, _} = {Log.delete(pid2), "deleted log"}
+    :ok = Log.start_link(:second)
+    Log.all_entries(:second)
+    |> inspect()
+    |> IO.puts()
+    Log.append(:second, "first hello second log")
+    Log.all_entries(:second)
+    |> inspect()
+    |> IO.puts()
+
+    Log.delete(:second)
+    Log.all_entries(:second)
+    |> inspect()
+    |> IO.puts()
+    LogRegistry.all_logs()
+    |> inspect()
+    |> IO.puts()
   end
 end

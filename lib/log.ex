@@ -1,32 +1,44 @@
 defmodule Log do
     use Agent
+    require LogRegistry
 
-    # todo use LogRegistry
-    def start_link() do
-        Agent.start_link(fn -> [] end, [name: :global_log])
-        |> case do
-            {:ok, pid} -> {:ok, pid}
-            {:error, {:already_started, pid}} -> {:ok, pid}
+    def start_link(name) do
+        :ok = LogRegistry.register(name)
+        # {^name, pid} = LogRegistry.get_log(name)
+        # {:ok, pid}
+    end
+
+    def append(name, entry) do
+        case LogRegistry.get_log(name) do
+            {^name, pid} -> 
+                :ok = Agent.update(pid, fn entries -> entries ++ [entry] end)
+                {:ok, entry}
+            _ -> {:error, :not_found}
         end
     end
 
-    def append(log, entry) do
-        Agent.update(log, fn entries -> entries ++ [entry] end)
+    def all_entries(name) do
+        case LogRegistry.get_log(name) do
+            {^name, pid} -> Agent.get(pid, fn entries -> entries end)
+            _ -> {:error, :not_found}
+        end
     end
 
-    def all_entries(log) do
-        Agent.get(log, fn entries -> entries end)
+    def latest_entry(name) do
+        case LogRegistry.get_log(name) do
+            {^name, pid} -> Agent.get(pid, fn entries -> Enum.at(entries, -1) end)
+            _ -> {:error, :not_found}
+        end
     end
 
-    def latest_entry(log) do
-        Agent.get(log, fn entries -> Enum.at(entries, -1) end)
+    def size(name) do
+        case LogRegistry.get_log(name) do
+            {^name, pid} -> Agent.get(pid, fn entries -> length(entries) end)
+            _ -> {:error, :not_found}
+        end
     end
 
-    def size(log) do
-        Agent.get(log, fn entries -> length(entries) end)
-    end
-
-    def delete(log) do
-        Agent.stop(log)
+    def delete(name) do
+        :ok = LogRegistry.unregister(name)
     end
 end
